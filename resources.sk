@@ -1,0 +1,237 @@
+on break:
+	if event-block is button:
+		gamemode of player is survival
+		cancel event
+		achieveAdvancement(player, "break_button")
+		give stone button named "&2Small Cobble" to player
+		set {_block} to block at location of event-block
+		set {_block} to "%{_block}%"
+		set block at location of event-block to air
+		wait 5 seconds
+		if {_block} is "stone button":
+			set block at location of event-block to stone button
+		if {_block} is "eastward stone button":
+			set block at location of event-block to eastward stone button
+		if {_block} is "westward stone button":
+			set block at location of event-block to westward stone button
+		if {_block} is "southward stone button":
+			set block at location of event-block to southward stone button
+
+		if {_block} is "floor stone button":
+			set block at location of event-block to floor stone button
+		if {_block} is "eastward floor stone button":
+			set block at location of event-block to eastward floor stone button
+		if {_block} is "westward floor stone button":
+			set block at location of event-block to westward floor stone button
+		if {_block} is "southward floor stone button":
+			set block at location of event-block to southward floor stone button
+
+	if event-block is leaves:
+		gamemode of player is survival
+		cancel event
+		achieveAdvancement(player, "break_leaves")
+		give 1 stick to player
+		set event-block to bedrock
+		wait 1 second
+		set event-block to jungle leaves
+
+	if event-block is gravel:
+		if player's held item is a shovel:
+			gamemode of player is survival
+			cancel event
+
+			set {_amount} to 1
+			if player's held item is a wooden shovel:
+				send "&7You need a stone shovel to mine this!" to player
+				stop
+				
+			if player's held item is an iron shovel:
+				set {_amount} to 5
+
+			if player's held item is an diamond shovel:
+				set {_amount} to 10
+
+
+			add "x: -119.5, y: 15.5, z: -155.5" to {_allowedLocations::*}
+			add "x: -119.5, y: 16.5, z: -155.5" to {_allowedLocations::*}
+			add "x: -118.5, y: 15.5, z: -156.5" to {_allowedLocations::*}
+			add "x: -118.5, y: 16.5, z: -156.5" to {_allowedLocations::*}
+
+			give {_amount} of flint to player
+			achieveAdvancement(player, "flint")
+
+			if {_allowedLocations::*} contains "%location of event-block%":
+				set event-block to piston extension
+				wait 2 seconds
+				set event-block to gravel
+				stop
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to gravel
+
+	if event-block is diorite:
+		if player's held item is a pickaxe:
+			gamemode of player is survival
+			cancel event
+			if player's held item is a wooden pickaxe or stone pickaxe:
+				send "&7You need an iron pickaxe to mine this!" to player
+				stop
+
+			add "x: -135.5, y: 11.5, z: -165.5" to {_allowedLocations::*}
+			add "x: -135.5, y: 10.5, z: -165.5" to {_allowedLocations::*}
+
+			give diorite to player
+
+			if {_allowedLocations::*} contains "%location of event-block%":
+				set event-block to piston extension
+				wait 2 seconds
+				set event-block to diorite
+				stop
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to diorite
+
+	if event-block is stone:
+		if player's held item is a pickaxe:
+			gamemode of player is survival
+			cancel event
+			if player's held item is a wooden pickaxe:
+				send "&7You need an stone pickaxe to mine this!" to player
+				stop
+			if player's held item is a stone pickaxe:
+				give 2 stone button named "&2Small Cobble" to player
+			if player's held item is an iron pickaxe:
+				give 1 cobblestone to player
+			if player's held item is an diamond pickaxe:
+				give 2 cobblestone to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to stone
+
+	if event-block is sand:
+		if player's held item is a shovel:
+			gamemode of player is survival
+			cancel event
+			if player's held item is a wooden shovel or stone shovel:
+				send "&7You need an iron shovel to mine this!" to player
+				stop
+			if player's held item is an iron shovel:
+				give 1 sand to player
+			if player's held item is a diamond shovel:
+				give 2 sand to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to sand
+
+	if event-block is gold ore:
+		if player's held item is a pickaxe:
+			gamemode of player is survival
+			cancel event
+			if player's held item is a wooden pickaxe or stone pickaxe:
+				send "&7You need an iron pickaxe to mine this!" to player
+				stop
+			if player's held item is an iron pickaxe:
+				give 1 gold ore to player
+			if player's held item is a diamond pickaxe:
+				give 2 gold ore to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to gold ore
+
+	if event-block is redstone ore:
+		if player's held item is a pickaxe:
+			gamemode of player is survival
+			cancel event
+			if player's held item is a wooden pickaxe or stone pickaxe:
+				send "&7You need an iron pickaxe to mine this!" to player
+				stop
+			if player's held item is an iron pickaxe:
+				give 1 redstone dust to player
+			if player's held item is a diamond pickaxe:
+				give 2 redstone dust to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to redstone ore
+
+	if event-block is coal ore:
+		if player's held item is a pickaxe:
+			if player's held item is a wooden pickaxe or stone pickaxe:
+				send "&7You need an iron pickaxe to mine this!" to player
+				stop
+			if player's held item is an iron pickaxe:
+				give 2 coal to player
+			if player's held item is a diamond pickaxe:
+				give 5 coal to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to coal ore
+
+	if event-block is iron ore:
+		if player's held item is a pickaxe:
+			if player's held item is a wooden pickaxe:
+				send "&7You need a stone pickaxe to mine this!" to player
+				stop
+			if player's held item is a stone pickaxe:
+				give 1 iron ore to player	
+			if player's held item is an iron pickaxe:
+				give 1 iron ore to player
+			if player's held item is a diamond pickaxe:
+				give 2 iron ore to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to iron ore
+
+	if event-block is lapis ore:
+		if player's held item is a pickaxe:
+			if player's held item is a wooden pickaxe or stone pickaxe:
+				send "&7You need a iron pickaxe to mine this!" to player
+				stop
+			give lapis lazuli named "&3Sapphire" to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to lapis ore
+
+	if event-block is diamond ore:
+		if player's held item is a pickaxe:
+			if name of player's held item is not "&cLaser Pickaxe":
+				player's held item is not a diamond pickaxe
+				send "&7You need a laser pickaxe to mine this!" to player
+				stop
+
+			if player's held item is a diamond pickaxe:
+				give 2 diamonds to player
+			else:
+				give 1 diamond to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to diamond ore
+
+	if event-block is emerald ore:
+		if player's held item is a pickaxe:
+			if player's held item is a wooden pickaxe or stone pickaxe or iron pickaxe:
+				send "&7You need a diamond pickaxe to mine this!" to player
+				stop
+			give emerald to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to emerald ore
+	
+	if event-block is purpur block:
+		if player's held item is a pickaxe:
+			if player's held item is a wooden pickaxe or stone pickaxe or iron pickaxe:
+				send "&7You need a diamond pickaxe to mine this!" to player
+				stop
+			give 2 experience bottle to player
+			set event-block to bedrock
+			wait 1 seconds
+			set event-block to purpur block
+
+	if event-block is nether quartz ore:
+		if player's held item is a pickaxe:
+			if player's held item is a wooden pickaxe or stone pickaxe or iron pickaxe:
+				send "&7You need a diamond pickaxe to mine this!" to player
+				stop
+			give 1 of nether quartz to player
+			set event-block to bedrock
+			wait 5 seconds
+			set event-block to nether quartz ore

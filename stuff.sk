@@ -1,0 +1,966 @@
+on join:
+
+	if player has played before:
+		set join message to "&7Welcome back, &a%player%!"
+		wait 20 ticks
+		make player execute command "/spawn"
+
+	if {players::*} does not contain uuid of player:
+		add uuid of player to {players::*}
+		set {players::%uuid of player%::escapes} to 0
+
+
+on first join:
+	execute console command "/pex user %player% group set player"
+	set {_totalPlayers} to size of {players::*}
+	set join message to "&7Welcome &a%player% &7to our awesome server! &e##%{_totalPlayers}%"
+	wait 20 ticks
+	start(player)
+
+command /totalplayers:
+	trigger:
+		send "&c%size of {players::*}%&b Players have joined in total!" to player
+		
+on quit:
+	set quit message to "&a%player%&7 Quit."
+
+on respawn:
+	wait 5 ticks
+	make player execute "/spawn"
+
+command /setspawn:
+	permission: *
+	trigger:
+		set {spawn} to location of player
+
+command /spawn:
+	trigger:
+		teleport player to {spawn}
+
+on place:
+	gamemode of player is survival
+	cancel event
+
+on left click:
+	if player's held item is iron bars:
+		name of player's held item is "&2Sieve"
+		target block is water
+		distance between target block and location of player > 5:
+			stop
+		set {_item} to player's held item
+		remove 1 of {_item} from player
+		wait 3 seconds
+		set {_rand} to a random number between 1 and 50
+		set {_rand} to round({_rand})
+		if {_rand} > 40:
+			give iron nugget to player
+			send action bar "&aYou sieved an iron chunk out of the water!" to player
+		else:
+			send action bar "&cSeems like you got nothing :(." to player
+
+		give iron bars named "&2Sieve" with lore "&aUse on water to find iron!" to player
+
+
+
+on break:
+	if gamemode of player is survival:
+		if event-block is jungle wood log or jungle wood bark block:
+			stop
+		if event-block is clay:
+			stop
+		cancel event
+
+
+on right click:
+	if player's held item is beetroot soup:
+		if player's hunger is 10:
+			remove 0.5 from player's hunger
+
+	if player's held item is crafting table named "&2Portable crafting table":
+		craftingGUI(player)
+
+	set {_heldItem} to player's held item
+	if {_heldItem} is furnace or blast furnace:
+
+		set {_name} to name of {_heldItem}
+		{_name} is "&2Portable furnace" or "&2Portable blast furnace"
+		open virtual furnace named {_name} to player
+		set slot 0 of player's current inventory to {players::%uuid of player%::furnace::1}
+		set slot 1 of player's current inventory to {players::%uuid of player%::furnace::2}
+		set slot 2 of player's current inventory to {players::%uuid of player%::furnace::3}
+
+
+on inventory close:
+	set {_invName} to inventory name of player's current inventory
+	if {_invName} contains "&2Portable furnace" or "&2Portable blast furnace":
+		set {players::%uuid of player%::furnace::1} to slot 0 of player's current inventory
+		set {players::%uuid of player%::furnace::2} to slot 1 of player's current inventory
+		set {players::%uuid of player%::furnace::3} to slot 2 of player's current inventory
+
+every second in world "island":
+	loop all players:
+		set {_invName} to inventory name of loop-player's current inventory
+		if {_invName} is "&2Portable furnace" or "&2Portable blast furnace":
+			set {_slot1} to slot 0 of loop-player's current inventory
+			set {_slot2} to slot 1 of loop-player's current inventory
+			set {_slot3} to slot 2 of loop-player's current inventory
+
+			set {_slot2amount} to item amount of {_slot2}
+
+			if {_slot2} is planks or coal or log or charcoal or coal block:
+				set {_removeFuel} to false
+
+				set {_fuelNum} to {players::%uuid of loop-player%::furnace::fuel}
+
+				remove 1 from {players::%uuid of loop-player%::furnace::fuel}
+
+				if {_fuelNum} <= 1:
+					set {_newFuel} to 1
+					if {_slot2} is coal or charcoal:
+						set {_newFuel} to 4
+					if {_slot2} is coal block:
+						set {_newFuel} to 50
+
+					set {players::%uuid of loop-player%::furnace::fuel} to {_newFuel}
+					set {_removeFuel} to true
+				
+				if {_removeFuel}:
+					remove 1 from {_slot2amount}
+
+				set {_item} to ""
+				if {_slot1} is iron ore:
+					set {_item} to iron nugget
+				if {_slot1} is gold ore:
+					set {_item} to gold nugget
+				if {_slot1} is log:
+					set {_item} to charcoal
+				if {_slot1} is mutton:
+					set {_item} to cooked mutton
+				if {_slot1} is sand:
+					set {_item} to glass
+
+				if {_item} is not "":
+
+					set {_amount} to item amount of slot 2 of loop-player's current inventory
+					if {_slot3} is air:
+						set {_amount} to 0
+
+					set {_addAmount} to 0
+					if {_slot1} is iron ore or gold ore:
+						set {_addAmount} to 2
+					else:
+						set {_addAmount} to 1
+
+					if {_invName} is "&2Portable blast furnace":
+						set {_addAmount} to {_addAmount}*4
+
+					add {_addAmount} to {_amount}
+
+					if {_slot3} is not air:
+						if {_slot3} is not {_item}:
+							stop
+
+					if {_amount} > 64:
+						stop
+
+					if {_invName} is "&2Portable blast furnace":
+						set {_amount1} to item amount of slot 0 of loop-player's current inventory - 2
+						if {_amount1} < 0:
+							stop
+						set slot 0 of loop-player's current inventory to {_amount1} of {_slot1}
+						set slot 2 of loop-player's current inventory to {_amount} of {_item}
+						set slot 1 of loop-player's current inventory to {_slot2amount} of {_slot2}
+					else:
+						set slot 2 of loop-player's current inventory to {_amount} of {_item}
+						set {_amount1} to item amount of slot 0 of loop-player's current inventory - 1
+						set slot 0 of loop-player's current inventory to {_amount1} of {_slot1}
+						set slot 1 of loop-player's current inventory to {_slot2amount} of {_slot2}
+
+on left click:
+	
+	if event-block is jungle wood log or jungle wood bark block:
+		player's held item is not an axe
+		set {_rand} to a random number between 1 and 10
+		set {_rand} to round({_rand})
+		if {_rand} is 5:
+			achieveAdvancement(player, "tree_punch")
+			give slimeball named "&2Coconut" with lore "&aHit the coconut on a hard material to crack it open!" to player
+			send "&aA coconut has fallen of the tree!" to player
+
+	if player's held item is a slimeball:
+		event-block is stone or gravel
+		achieveAdvancement(player, "coconut_break")
+		name of player's tool is "&2Coconut"
+		remove 1 of event-item from player's inventory
+		give 2 beetroot soup named "&2Half Coconut" with lore "&aNom nom nom" to player
+		send "&aYou cracked open the coconut!" to player
+		stop
+
+	if player's held item is a bowl or beetroot soup:
+		event-block is stone or gravel
+		achieveAdvancement(player, "break_bowl")
+		name of player's tool is "&2Empty bowl" or "&2Half Coconut"
+		remove 1 of event-item from player's inventory
+		give 5 stick to player
+
+
+on consume:
+	event-item is beetroot soup
+	name of event-item is "&2Half Coconut"
+	cancel event
+	add 1 to player's hunger
+	give bowl named "&2Empty bowl" with lore "&aHit the bowl on a hard material to make sticks!" to player
+	wait 2 ticks
+	remove event-item from player's inventory
+
+
+on death of player:
+	if {swimtime.%player%} > 5:
+		set death message to "&e%player% &adrowned to death."
+	if attacker is a player:
+		give shiny rotten flesh named "&4&lHuman Meat" to attacker
+
+
+
+every 20 ticks in world "island":
+	loop all players:
+		if gamemode of loop-player is survival:
+			if loop-player is in water:
+				set {_ppos} to location of loop-player
+				set {_y} to y coord of {_ppos}
+				if {_y} > 16:
+					add 1 to {swimtime.%loop-player%}
+					if {swimtime.%loop-player%} > 5:
+						push loop-player downwards at speed 1.5
+						remove 2 from loop-player's health
+			else:
+				if {swimtime.%loop-player%} > 0:
+					remove 2 from {swimtime.%loop-player%}
+
+			set {_middle} to location at -128, 17, -159 in world "island"
+			set {_dist} to distance between location of loop-player and {_middle}
+			if {_dist} > 290:
+				if "%vehicle of loop-player%" contains "dark oak boat":
+					escaped(loop-player)
+				else if "%vehicle of loop-player%" contains "birch boat":
+					send subtitle "&4GO ANY FURTHER AND YOUR BOAT WILL BREAK" to loop-player
+					if {_dist} > 325:
+						delete vehicle of loop-player
+				else:
+					set {_ppos} to location of loop-player
+					set {_y} to y coord of {_ppos}
+					if {_y} > 16:
+						remove 1 from loop-player's health
+
+on damage:
+	if gamemode of attacker is creative:
+		stop
+	if "%event-damagecause%" is "unknown" or "drowning":
+		stop
+
+	if attacker is a player:
+		if attacker's held item is not a sword:
+			send "&7The &e%victim% &7is stronger than you think! Use a sword!" to attacker
+			cancel event
+			stop
+		if victim is a player:
+
+			set {_attackeruuid} to uuid of attacker
+			if {players::%{_attackeruuid}%::pvp} is not true:
+				send "&3You have PVP disabled! enable with &e/enablepvp" to attacker
+				cancel event
+				stop
+
+			set {_victimuuid} to uuid of victim
+			if {players::%{_victimuuid}%::pvp} is not true:
+				send "&3This player has PVP disabled!" to attacker
+				cancel event
+				stop
+
+			if victim does not have any sword:
+				send "&7You can not harm unarmed players!" to attacker
+				cancel event
+				stop
+
+on death of sheep:
+	cancel drops of items
+	give attacker 1 white wool
+	give attacker 1 raw mutton 
+	achieveAdvancement(attacker, "kill_sheep")
+
+
+command /nameitem <text>:
+	permission: *
+	trigger:
+		set {_name} to colored arguments
+		set {_items::*} to players's tool
+		set {_item} to index 0 of {_items::*}
+		give {_item} named {_name} to player
+		remove {_item} from player's inventory
+
+command /loreitem <text>:
+	permission: *
+	trigger:
+		set {_lore} to colored arguments
+		set {_items::*} to players's tool
+		set {_item} to index 0 of {_items::*}
+		set {_name} to name of {_item}
+		give {_item} named {_name} with lore {_lore} to player
+		remove {_item} from player's inventory
+
+every 5 minutes:
+	execute console command "/save-all"
+
+on craft:
+	cancel event
+
+
+function calculateLeaderboard():
+	loop {players::*}:
+		if {players::%loop-value%::escapes} is not 0:
+			set {_levels::%loop-value%} to {players::%loop-value%::escapes}
+	loop {_levels::*}:
+		add 1 to {_size}
+		if {_low.to.high.list::%loop-value%} is not set:
+			set {_low.to.high.list::%loop-value%} to loop-index
+		else:
+			set {_n} to 0
+			loop {_size} times:
+				set {_n} to {_n}+1
+				{_low.to.high.list::%loop-value-1%.%{_n}%} is not set
+				set {_low.to.high.list::%loop-value-1%.%{_n}%} to loop-index
+				stop loop
+	wait 1 tick
+	set {_n} to size of {_low.to.high.list::*}
+	loop {_low.to.high.list::*}:
+		set {_high.to.low.list::%{_n}%} to loop-value
+		set {_n} to {_n}-1
+	wait 1 tick
+	set {leaderboard::*} to {_high.to.low.list::*}
+
+function calculateTokenTop():
+	loop {tokens::*}:
+		add 1 to {_size}
+		if {_low.to.high.list::%loop-value%} is not set:
+			set {_low.to.high.list::%loop-value%} to loop-index
+		else:
+			set {_n} to 0
+			loop {_size} times:
+				set {_n} to {_n}+1
+				{_low.to.high.list::%loop-value-1%.%{_n}%} is not set
+				set {_low.to.high.list::%loop-value-1%.%{_n}%} to loop-index
+				stop loop
+	wait 1 tick
+	set {_n} to size of {_low.to.high.list::*}
+	loop {_low.to.high.list::*}:
+		set {_high.to.low.list::%{_n}%} to loop-value
+		set {_n} to {_n}-1
+	wait 1 tick
+	set {tokenTop::*} to {_high.to.low.list::*}
+
+command /calculateescapetop:
+	permission: *
+	trigger:
+		calculateLeaderboard()
+
+command /escapetop:
+	trigger:
+		wait 5 ticks
+		send "&aTop most escapes:" to player
+		loop 10 times:
+			set {_puuid} to {leaderboard::%loop-value%}
+			set {_pname} to {_puuid} parsed as offline player
+			set {_escapes} to {players::%{_puuid}%::escapes}
+			send "&a##%loop-value% &b%{_pname}%: &f%{_escapes}%" to player
+
+command /tokentop:
+	trigger:
+		calculateTokenTop()
+		wait 5 ticks
+		send "&aTop most tokens:" to player
+		loop 10 times:
+			set {_pname} to {tokenTop::%loop-value%}
+			set {_tokens} to {tokens::%{_pname}%}
+			send "&a##%loop-value% &b%{_pname}%: &f%{_tokens}%" to player
+
+command /resetescapes <offlineplayer>:
+	permission: *
+	trigger:
+		set {_p} to uuid of arg-1
+		set {players::%{_p}%::escapes} to 0
+		send "&cResetted &e%arg-1%&c's escape count" to player
+
+
+on right click:
+	if player's tool or player's offhand is Shears:
+		if event-entity is sheep:
+			if "%color of event-entity%" is "pink":
+				cancel event
+				stop
+			set {_nbt} to nbt of event-entity
+			if {_nbt} contains "Sheared:0":
+				give 2 white wool to player
+				replace "Sheared:0" with "Sheared:1" in nbt of event-entity
+				cancel event
+
+every 10 ticks:
+	set {_count} to size of all sheep
+	if {_count} < 50:
+		loop 50 times:
+			set {_pos1} to location at -93, 47, -200 in world "island"
+			set {_pos2} to location at -159, 51, -121 in world "island"
+			set {_x} to a random integer between x coord of {_pos1} and x coord of {_pos2}
+			set {_z} to a random integer between z coord of {_pos1} and z coord of {_pos2}
+			set {_location} to location({_x}, 30, {_z}, world("island"))
+			spawn sheep at location above {_location}
+	
+
+
+command /discord:
+	trigger:
+		message "&aJoin our epic <url:https://discord.gg/bWzSEyb>&b&nDiscord Server<reset>" to player
+
+
+on join:
+	set {jointime::%player%} to now
+
+on disconnect:
+	add difference between {jointime::%player%} and now to {playtime::%player%}
+
+command /playtime [<offlineplayer>]:
+	trigger:
+		if arg-1 is set:
+			if {playtime::%arg-1%} is set:
+				if arg-1 is online:
+					set {_playtimesincejoin} to difference between {jointime::%arg-1%} and now
+					set {_playtime} to {_playtimesincejoin} + {playtime::%arg-1%}
+					send "&ePlaytime of %arg-1% is %{_playtime}%" to player
+				else:
+					send "&ePlaytime of %arg-1% is %{playtime::%arg-1%}%" to player
+			else:
+				send "&cThis player does not play on this server!" to player
+		else:
+			set {_playtimesincejoin} to difference between {jointime::%player%} and now
+			set {_playtime} to {_playtimesincejoin} + {playtime::%player%}
+			send "&eYour playtime is %{_playtime}%" to player
+
+command /seeconsole:
+	permission: *
+	trigger:
+		add player to {consoleSee::*}
+
+command /unseeconsole:
+	permission: *
+	trigger:
+		remove player from {consoleSee::*}
+
+function console(t: text):
+	loop {consoleSee::*}:
+		send "&4CONSOLE: &7%{_t}%" to loop-value
+
+
+on leaves decay:
+	cancel event
+
+on left click:
+	if gamemode of player is survival:
+		if block above clicked block is fire:
+			cancel event
+
+
+command /sethandvar <text>:
+	permission: *
+	trigger:
+		set {%arg-1%} to player's tool
+
+command /setposvar <text>:
+	permission: *
+	trigger:
+		set {%arg-1%} to position of player
+
+command /setposvar1 <text>:
+	permission: *
+	trigger:
+		set {setposvar1} to true
+		set {setposvar1var} to arg-1
+
+on break:
+	if {setposvar1} is true:
+		cancel event
+		set {setposvar1} to false
+		set {%{setposvar1var}%} to location of event-block
+		send "&fSet &e%{setposvar1var}% &f to block!"
+
+
+command /setvariable <text> <text>:
+	permission: *
+	trigger:
+		set {%args-1%} to args-2
+
+command /getvariable <text>:
+	permission: *
+	trigger:
+		set {_var} to {%args-1%}
+		message "var: %{_var}%"
+
+command /clearvariable <text>:
+	permission: *
+	trigger:
+		clear {%args-1%}
+
+command /getlistvariable <text>:
+	permission: *
+	trigger:
+		loop {%args-1%::*}:
+			message "&a%{loop-index}%: &f%{loop-value}%" to player
+
+
+#=================================
+#             S-BOATS
+#=================================
+on vehicle enter:
+	console("%player% entered %player's vehicle%")
+
+	# prevent
+	set {_puuid} to uuid of player
+	if gamemode of player is survival:
+		if player's vehicle is boat:
+			if player's vehicle is dark oak boat:
+				set {players::%{_puuid}%::inboat} to "escape_boat"
+			if player's vehicle is birch boat:
+				set {players::%{_puuid}%::inboat} to "small_raft"
+
+	# cooldown
+	set {vehicleExitCooldown} to true
+	wait 1 tick
+	set {vehicleExitCooldown} to false
+	
+
+on vehicle exit:
+	if {vehicleExitCooldown} is false:
+		set {vehicleExitCooldown} to true
+		set {_puuid} to uuid of player
+		if player's vehicle is birch boat:
+			giverecipe(player, "small_raft")
+		if player's vehicle is dark oak boat:
+			giverecipe(player, "escape_boat")
+
+		delete vehicle of player
+		
+		wait 1 tick
+		set {vehicleExitCooldown} to false
+
+
+on vehicle damage:
+	if gamemode of player is survival:
+		cancel event
+
+on right click:
+	gamemode of player is survival
+	player's tool or player's offhand is boat
+	if target block is not water:
+		cancel event
+		stop
+	if player's tool or player's offhand is oak boat:
+		if name of player's held item is "&bBoat frame":
+			send "&bYou can't escape with just a frame! Build the &cESCAPE BOAT&b!" to player
+		cancel event
+		stop
+	if player's tool or player's offhand is birch boat:
+		if name of player's held item is "&3Small raft &4|NOT FOR ESCAPING|":
+			send "&cYou placed the small raft. &4YOU CAN'T GO TOO FAR WITH THIS RAFT" to player
+			stop
+
+	if player's tool or player's offhand is dark oak boat:
+		if name of player's held item is "&cESCAPE BOAT":
+			send "&cYou placed the escape boat. Now escape!" to player
+		else:
+			cancel event
+	else:
+		if player's held item is boat:
+			cancel event
+
+#=================================
+#          S-KEY ESCAPE
+#=================================
+
+on place:
+	player's tool is sea lantern
+	name of player's tool is "&aK&bE&cY"
+	set {_pos1} to location of event-block
+	if {_pos1} is {keyposition}:
+		remove 1 of player's tool from player
+		toggle block at {keydoorpos}
+
+on portal:
+	set {_dist} to distance between player and {keyportalpos}
+	if {_dist} < 5:
+		toggle block at {keydoorpos}
+		escaped(player)
+
+#=================================
+#             S-EVENTS
+#=================================
+on drop:
+	if gamemode of player is survival:
+		send "&6You can't drop items! Use &3/trash &6to dispose of items!" to player
+		cancel event
+
+#=================================
+#             S-COMMANDS
+#=================================
+
+command /gay:
+	trigger:
+		make player say "I have homosexuans"
+
+#================================= Trashcan
+command /trash:
+	aliases: disposal
+	trigger:
+		open chest inventory with 4 rows named "&4&lDISPOSAL" to player
+
+on inventory close:
+	if inventory name of event-inventory is "&4&lDISPOSAL":
+		send "&6Deleting items..."
+
+
+#=================================
+#             S-STONECUTTER
+#=================================
+on right click:
+	player's tool is stonecutter
+	name of player's tool is "&3Diamond Cutter"
+	open virtual hopper inventory with 1 row named "&3&lDIAMOND CUTTER" to player
+	format gui slot 1 of player with shiny barrier
+	format gui slot 2 of player with shiny barrier
+	format gui slot 3 of player with shiny barrier
+	set slot 0 of player's current inventory to {players::%uuid of player%::diamondcutter::1}
+	set slot 4 of player's current inventory to {players::%uuid of player%::diamondcutter::2}
+
+on inventory close:
+	set {_invName} to inventory name of player's current inventory
+	if {_invName} is "&3&lDIAMOND CUTTER":
+		set {players::%uuid of player%::diamondcutter::1} to slot 0 of player's current inventory
+		set {players::%uuid of player%::diamondcutter::2} to slot 4 of player's current inventory
+
+every 1 seconds in world "island":
+	loop all players:
+		set {_p} to loop-player
+		set {_puuid} to uuid of loop-player
+		set {_invName} to inventory name of loop-player's current inventory
+		if {_invName} is "&3&lDIAMOND CUTTER":
+			set {_slot1} to slot 0 of loop-player's current inventory
+			set {_slot1amount} to item amount of {_slot1}
+			set {_slot2} to slot 4 of loop-player's current inventory
+			set {_slot2amount} to item amount of {_slot2}
+
+			set {_product} to ""
+			if {_slot1} is diamond:
+				set {_product} to diamond block
+			if {_slot1} is emerald:
+				set {_product} to emerald block
+			if {_slot1} is gold ingot:
+				set {_product} to gold block
+			if {_slot1} is nether quartz:
+				set {_product} to quartz block
+
+			if {_product} is "":
+				stop
+			if {_slot1amount} < 9:
+				stop
+			if {_slot2} is not air:
+				if {_slot2} is not {_product}:
+					stop
+			else:
+				set {_slot2amount} to 0
+
+			remove 9 from {_slot1amount}
+			add 1 to {_slot2amount}
+
+			set slot 0 of loop-player's current inventory to {_slot1amount} of {_slot1}
+			set slot 4 of loop-player's current inventory to {_slot2amount} of {_product}
+
+
+
+#=================================
+#            S-SILICON-PRESS
+#=================================
+on right click:
+	player's tool is piston
+	name of player's tool is "&2Silicon Press"
+	open virtual hopper inventory with 1 row named "&2Silicon Press" to player
+	format gui slot 1 of player with shiny barrier
+	format gui slot 2 of player with shiny barrier
+	format gui slot 3 of player with shiny barrier
+	set slot 0 of player's current inventory to {players::%uuid of player%::siliconpress::1}
+	set slot 4 of player's current inventory to {players::%uuid of player%::siliconpress::2}
+
+on inventory close:
+	set {_invName} to inventory name of player's current inventory
+	if {_invName} is "&2Silicon Press":
+		set {players::%uuid of player%::siliconpress::1} to slot 0 of player's current inventory
+		set {players::%uuid of player%::siliconpress::2} to slot 4 of player's current inventory
+
+every 1 seconds in world "island":
+	loop all players:
+		set {_p} to loop-player
+		set {_puuid} to uuid of loop-player
+		set {_invName} to inventory name of loop-player's current inventory
+		if {_invName} is "&2Silicon Press":
+			set {_slot1} to slot 0 of loop-player's current inventory
+			set {_slot1amount} to item amount of {_slot1}
+			set {_slot2} to slot 4 of loop-player's current inventory
+			set {_slot2amount} to item amount of {_slot2}
+
+			if {_slot1} is not clay:
+				if name of {_slot1} is not "&8Silicon":
+					stop
+				set {_product} to diamond block
+
+			if {_slot2} is air:
+				set {_slot2amount} to 0
+
+			if {_slot1} is air:
+				stop
+
+			remove 1 from {_slot1amount}
+			add 1 to {_slot2amount}
+
+			set slot 0 of loop-player's current inventory to {_slot1amount} of {_slot1}
+			set slot 4 of loop-player's current inventory to {_slot2amount} of shiny lever named "&8Transistor"
+
+
+#=================================
+#            S-COMPUTER
+#=================================
+on right click:
+	gamemode of player is survival
+	player's tool is observer
+	name of player's tool is "&6Computer"
+	cancel event
+	remove 1 of player's tool from player's inventory
+	teleport player to location at -303.5, 250, 876.5 in world "island"
+	heal player
+
+on portal:
+	set {_pos} to location at -303.5, 1, 876.5 in world "island"
+	set {_dist} to distance between player and {_pos}
+	if {_dist} < 5:
+		escaped(player)
+
+
+
+#=================================
+#            S-Disable PVP
+#=================================
+command /disablePVP:
+	cooldown: 1 minute
+	cooldown message: &cYou must wait %remaining time% before using this again! 
+	trigger:
+		set {_puuid} to uuid of player
+		set {players::%{_puuid}%::pvp} to false
+		send "&3You disabled PVP. Players can't hit you and you can't hit others!" to player
+
+command /enablePVP:
+	cooldown: 1 minute
+	cooldown message: &cYou must wait %remaining time% before using this again! 
+	trigger:
+		set {_puuid} to uuid of player
+		set {players::%{_puuid}%::pvp} to true
+		send "&3You enabled PVP. Players can kill you now!" to player
+
+#=================================
+#            S-KILLERSHEEP
+#=================================
+every 5 tick:
+	loop all sheep:
+		"%color of loop-value%" is "pink"
+		set {_pos} to location of loop-value
+		set {_closestp} to getClosestPlayer({_pos})
+		make loop-value pathfind to {_closestp} at speed 3
+		set {_dist} to distance between loop-value and {_closestp}
+		if {_dist} < 2:
+			remove 0.5 from {_closestp}'s health
+			push {_closestp} upwards at speed 0.1
+
+on damage:
+	victim is sheep
+	gamemode of attacker is survival
+	attacker is player
+	"%color of victim%" is "pink"
+	victim's health > 0.1
+	cancel event
+	remove damage/20 from victim's health
+
+
+function getClosestPlayer(l: location) :: player:
+	set {_nearestPlayer} to 0
+	set {_nearestPlayerDistance} to 1000
+	loop all players:
+		if location of loop-player is {_l}:
+			continue
+		set {_distance} to distance between loop-player and {_l}
+		if {_distance} < {_nearestPlayerDistance}:
+			set {_nearestPlayer} to loop-player
+			set {_nearestPlayerDistance} to {_distance}
+
+	return {_nearestPlayer}
+
+command /spawnkillersheep:
+	permission: *
+	trigger:
+		spawn sheep
+		set color of last spawned entity to pink
+
+on death:
+	victim is sheep
+	"%color of victim%" is "pink"
+	give attacker shiny pink wool named "&5Pink Killer Sheep Wool"
+
+
+#=================================
+#            S-DAMAGE NAME
+#=================================
+on damage:
+	wait 2 ticks
+	set name of victim to "&4%health of victim%/%max health of victim%"
+
+
+#=================================
+#            S-RANDOM
+#=================================
+command /killmobs:
+	permission: *
+	trigger:
+		loop all mobs:
+			kill loop-value
+	
+command /rules:
+	trigger:
+		send "&aRules:"
+		send "&c1:&b Don't be an asshole."
+		send "&c2:&b Don't swear excessivly."
+		send "&c3:&b Don't spam too much."
+		send "&c4:&b No hacking."
+		send "&c5:&b You can use autoclicker but don't cause noise disturbance."
+		send "&c6:&b Report abuses / glitches / bugs to staff."
+	
+command /myversion:	
+	trigger:
+		send "&7You're minecraft version is &e%minecraft version of player%"
+
+on join:
+	set {_ver} to minecraft version of player
+	add 1 to {pversions::%{_ver}%}
+	set {_vers::*} to {_ver} split at "."
+	set {_nm} to index 1 of {_vers::*}
+	set {_nm} to {_nm} parsed as a number
+
+	wait 5 seconds
+	if {_nm} < 14:
+		kick player due to "&cSorry, This server is not compatible with 1.13 and lower. &aPlease use 1.14 or above!"
+	
+command /getplayerversions:
+	permission: *
+	trigger:
+		send "Player versions"
+		loop {pversions::*}:
+			send "&a%loop-index%: &b%loop-value%"
+
+command /sendjail <player>:
+	permission: *
+	trigger:
+		sendjail(arg-1)
+		
+function sendjail(p: player):
+	set {_uuid} to uuid of {_p}
+	if {injail::*} contains {_p}:
+		remove {_p} from {injail::*}
+	toggle block at {jailDoorPos}
+	apply blindness 1 without particles to {_p} for 500 seconds
+	wait 2 seconds
+	apply night vision 1 without particles to {_p} for 5 seconds
+	set {_pos} to location at -224.5, 5, -117.5 in world "island"
+	teleport {_p} to {_pos}
+	add {_p} to {injail::*}
+	wait 15 seconds
+	toggle block at {jailDoorPos}
+
+function randomTicks(t: number) :: timespan:
+	set {_rand} to a random number between 1 and {_t}
+	set {_rand} to round({_rand})
+	set {_time} to "%{_rand}% ticks" parsed as timespan
+	return {_time}
+
+every 1 seconds:
+	if size of {injail::*} > 0:
+		set block at {jail5lightflicker1} to lit redstone lamp
+		wait randomTicks(30)
+		set block at {jail5lightflicker1} to redstone lamp
+		wait randomTicks(30)
+		set block at {jail5lightflicker2} to lit redstone lamp
+		wait randomTicks(30)
+		set block at {jail5lightflicker2} to redstone lamp
+
+function sendHelicopter(p: player):
+	teleport {_p} to {jailheli}
+	wait 1 seconds
+	send title "&f&lJUMP" to {_p}
+	wait 5 seconds
+	set {_pos} to location at -106, 150, -133 in world "island"
+	loop 100 times:
+		set {_ppos} to location of {_p}
+		set {_pposy} to y coord of {_ppos}
+		set {_pposy} to {_pposy} parsed as number
+		if {_pposy} < 150:
+			remove blindness from {_p}
+			stop loop
+		set {_idx} to loop-value
+		set {_speed} to {_idx}/50
+		push {_p} (direction from {_p} to location of {_pos}) with speed {_speed}
+		wait 5 ticks
+
+command /sendheli <player>:
+	permission: *
+	trigger:
+		set {_p} to arg-1
+		sendHelicopter({_p})
+
+command /releasejail <player>:
+	permission: *
+	trigger:
+		remove arg-1 from {injail::*}
+		wait 5 ticks
+		sendHelicopter(arg-1)
+
+on teleport:
+	if {injail::*} contains player:
+		cancel event
+
+on portal:
+	if {injail::*} contains player:
+		remove player from {injail::*}
+		wait 5 ticks
+		sendHelicopter(player)
+		cancel event
+
+
+#=================================
+#          S-NETHER
+#=================================
+on portal:
+	console("%player% entered portal")
+	set {_pos} to location at 102, 35, 23 in world "netherisland"
+	set {_pos1} to location at -245, 14, -207 in world "island"
+
+	set {_dist} to distance between player and {_pos}
+	if {_dist} < 50:
+		teleport player to {_pos1}
+		stop
+
+	set {_dist1} to distance between player and {_pos1}
+	if {_dist1} < 50:
+		teleport player to {_pos}
+		stop
+	

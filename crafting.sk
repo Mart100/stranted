@@ -1,0 +1,319 @@
+on right click:
+	if event-block is crafting table:
+		cancel event
+		craftingGUI(player)
+
+
+function craftingGUI(p: player):
+	open virtual chest inventory with size 1 named "Crafting:" to {_p}
+
+	format gui slot 0 of {_p} with oak planks named "&aItems" to run:
+		craftingGUIcat({_p}, "items")
+	format gui slot 1 of {_p} with stone axe named "&aTools" to run:
+		craftingGUIcat({_p}, "tools")
+	format gui slot 2 of {_p} with furnace named "&aOther" to run:
+		craftingGUIcat({_p}, "other")
+	format gui slot 3 of {_p} with redstone block named "&aElectronics" to run:
+		craftingGUIcat({_p}, "electronics")
+
+	set {_puuid} to uuid of {_p}
+	set {_escapes} to {players::%{_puuid}%::escapes}
+	if {_escapes} is 0:
+		format gui slot 4 of {_p} with dispenser named "&aBoat parts" to run:
+			craftingGUIcat({_p}, "boat_parts")
+	else if {_escapes} is 1:
+		format gui slot 4 of {_p} with sea lantern named "&aKey parts" to run:
+			craftingGUIcat({_p}, "key_parts")
+	else if {_escapes} is 2:
+		format gui slot 4 of {_p} with observer named "&aComputer parts" to run:
+			craftingGUIcat({_p}, "computer_parts")
+	else:
+		format gui slot 4 of {_p} with dispenser named "&aBoat parts" to run:
+			craftingGUIcat({_p}, "boat_parts")
+		format gui slot 5 of {_p} with observer named "&aKey parts" to run:
+			craftingGUIcat({_p}, "key_parts")
+		format gui slot 6 of {_p} with sea lantern named "&aComputer parts" to run:
+			craftingGUIcat({_p}, "computer_parts")
+
+	format gui slot 8 of {_p} with shiny bedrock named "&aEscape ways" to run:
+		craftingGUIcat({_p}, "escapes")
+	
+
+function craftingGUIcat(p: player, cat: text):
+	set {_itemSize} to 1
+	loop {recipeList::*}:
+		if {recipeData.%loop-value%.category} is {_cat}:
+			add 1 to {_itemSize}
+
+	set {_rows} to ceil({_itemSize}/9)
+	open virtual chest inventory with size {_rows} named "%{_cat}% Crafting:" to {_p}
+	set {_idx} to 1
+	format gui slot 0 of {_p} with {backbuttonhead} named "&6Go Back" to run:
+		craftingGUI({_p})
+		stop
+
+	loop {recipeList::*}:
+		if {recipeData.%loop-value%.category} is {_cat}:
+			set {_needed} to ""
+			clear {_lore::*}
+			add "&aNeeds:" to {_lore::*}
+			loop {recipeData.%loop-value%.needed::*}:
+				set {_name} to name of loop-value-2
+				set {_amount} to item amount of loop-value-2
+				set {_full} to "&c%{_amount}% &b%{_name}%"
+				clear {_itemType}
+				if {_name} is not set:
+					set {_itemType} to type of loop-value-2
+					if {_itemType} is set:
+						if {_itemType} is a redstone item:
+							set {_itemType} to "redstone dust"
+						set {_full} to "&c%{_amount}% &2%{_itemType}%"
+					else:
+						set {_full} to "&c%loop-value-2%"
+						if {_amount} is 1:
+							set {_full} to "&c1 &b%loop-value-2%"
+				add "%{_full}%" to {_lore::*}
+				clear {_name}
+				clear {_amount}
+				clear {_full}
+			add loop-value to {_slots::*}
+			set {_item} to {recipeData.%loop-value%.product}
+
+
+			set {_barrier} to false
+			if {_cat} is "escapes":
+				set {_puuid} to uuid of {_p}
+				set {_escapes} to {players::%{_puuid}%::escapes}
+				if {_escapes} is 0:
+					if name of {_item} is not "&cESCAPE BOAT":
+						set {_barrier} to true
+				if {_escapes} is 1:
+					if name of {_item} is not "&aK&bE&cY":
+						set {_barrier} to true
+				if {_escapes} is 2:
+					if name of {_item} is not "&6Computer":
+						set {_barrier} to true
+			if {_barrier} is true:
+				set {_item} to shiny barrier named "&4&klmao gay people"
+				set {_lore::*} to ""
+
+
+			format gui slot {_idx} of {_p} with {_item} with lore {_lore::*} to run:
+				set {_slot} to gui-slot
+				set {_id} to {_slots::%{_slot}%}
+				craftRecipe({_p}, {_id})
+			add 1 to {_idx}
+
+
+function craftRecipe(p: player, r: text):
+	loop {recipeData.%{_r}%.needed::*}:
+		set {_item} to loop-value
+		clear {_itemname}
+		set {_itemname} to name of loop-value
+		if {_itemname} is not set:
+			set {_itemname} to ""
+		if {_p} does not have {_item} named {_itemname}:
+			send "&aYou don't have enough resources!" to {_p}
+			stop
+
+	loop {recipeData.%{_r}%.needed::*}:
+		set {_item} to loop-value
+		set {_itemamount} to item amount of {_item}
+		clear {_itemname}
+		set {_itemname} to name of {_item}
+		if {_itemname} is not set:
+			set {_itemname} to ""
+		set {_item} to {_item} named {_itemname}
+
+		set {_taken} to false
+		loop slots integers from 0 to 40 of {_p}:
+			if loop-item is {_item}:
+				if {_taken} is false:
+					remove {_itemamount} of loop-item from {_p}'s inventory
+					set {_taken} to true
+	
+
+	give {recipeData.%{_r}%.product} to {_p}
+	checkAdvancementsAfterCraft({_p}, {_r})
+
+function checkAdvancementsAfterCraft(p: player, r: text):
+	if {_r} is "cobblestone":
+		achieveAdvancement({_p}, "craft_cobble")
+	if {_r} is "planks":
+		achieveAdvancement({_p}, "craft_planks")
+	if {_r} is "wooden_shovel":
+		achieveAdvancement({_p}, "wooden_shovel")
+	if {_r} is "crafting_table":
+		achieveAdvancement({_p}, "craft_bench")
+	if {_r} is "strings":
+		achieveAdvancement({_p}, "craft_string")
+	if {_r} is "stone_sword":
+		achieveAdvancement({_p}, "stone_sword")
+	if {_r} is "sieve":
+		achieveAdvancement({_p}, "craft_sieve")
+	if {_r} is "iron":
+		achieveAdvancement({_p}, "craft_iron_ingot")
+	if {_r} is "flint_and_steel":
+		achieveAdvancement({_p}, "craft_flint_and_steel")
+	if {_r} is "portable_furnace":
+		achieveAdvancement({_p}, "craft_portable_furnace")
+	if {_r} is "stone_pickaxe":
+		achieveAdvancement({_p}, "stone_pickaxe")
+	if {_r} is "stone_shovel":
+		achieveAdvancement({_p}, "stone_shovel")
+	if {_r} is "strong_stick":
+		achieveAdvancement({_p}, "strong_stick")
+	if {_r} is "iron_pickaxe":
+		achieveAdvancement({_p}, "iron_pickaxe")
+	if {_r} is "backpack":
+		achieveAdvancement({_p}, "backpack")
+	if {_r} is "boat_frame":
+		achieveAdvancement({_p}, "boat_frame")
+	if {_r} is "iron_axe":
+		achieveAdvancement({_p}, "iron_axe")
+
+
+function giverecipe(p: player, r: text):
+	set {_product} to {recipeData.%{_r}%.product}
+	give {_product} to {_p}
+
+command /giverecipe [<text>] [<player>]:
+	permission: *
+	trigger:
+
+		if arg-1 is not set:
+			set {_rows} to ceil((size of {recipeList::*})/9)
+			open virtual chest inventory with {_rows} rows named "&3&lRECIPES:" to player
+			set {_idx} to -1
+			set {_puuid} to uuid of player
+			
+			loop {recipeList::*}:
+				set {_id} to loop-value
+				add 1 to {_idx}
+				set {_product} to {recipeData.%{_id}%.product}
+				format gui slot {_idx} of player with {_product} to run:
+					close player's inventory
+					make player execute command "/giverecipe %{_id}%"
+			stop
+
+		else:
+			set {_p} to player
+			if arg-2 is set:
+				set {_p} to arg-2
+			giverecipe({_p}, arg-1)
+
+command /addrecipe <text>:
+	permission: *
+	trigger:
+		set {_id} to arg-1
+		if {recipeList::*} contains {_id}:
+			send "&aRecipe already exists!" to player
+			stop
+		add {_id} to {recipeList::*}
+		set {recipeData.%{_id}%.id} to {_id}
+		openEditNeededRecipe(player, {_id})
+
+command /recipelist:
+	permission: *
+	trigger:
+		set {_rows} to ceil((size of {recipeList::*})/9)
+		open virtual chest inventory with {_rows} rows named "&3&lRECIPE LIST:" to player
+		set {_idx} to -1
+		set {_puuid} to uuid of player
+		
+		loop {recipeList::*}:
+			set {_id} to loop-value
+			add 1 to {_idx}
+			set {_product} to {recipeData.%{_id}%.product}
+			format gui slot {_idx} of player with {_product} to run:
+				close player's inventory
+				make player execute command "/editrecipe %{_id}%"
+
+command /removerecipe <text>:
+	permission: *
+	trigger:
+		set {_id} to arg-1
+		if {recipeList::*} does not contain {_id}:
+			send "&aRecipe does not exist!" to player
+			stop
+		remove {_id} from {recipeList::*}
+		delete {recipeData.%{_id}%}
+		delete {recipeData.%{_id}%.id}
+		delete {recipeData.%{_id}%.needed::*}
+		delete {recipeData.%{_id}%.product}
+		delete {recipeData.%{_id}%.category}
+		send "&aRecipe &b%{_id}% &aremoved" to player
+
+command /editrecipe <text>:
+	permission: *
+	trigger:
+		set {_args::*} to arguments split at " "
+		set {_arg-1} to index 0 of {_args::*}
+		if size of {_args::*} >= 2:
+			set {_arg-2} to index 1 of {_args::*}
+		if size of {_args::*} >= 3:
+			set {_arg-3} to index 2 of {_args::*}
+
+		set {_id} to {_arg-1}
+
+		if {_arg-2} is not set:
+			make player execute command "/recipeinfo %{_id}%"
+
+		if {_arg-2} is "needed":
+			openEditNeededRecipe(player, {_id})
+		if {_arg-2} is "product":
+			openEditProductRecipe(player, {_id})
+		if {_arg-2} is "category":
+			set {recipeData.%{_id}%.category} to {_arg-3}
+			send "&aSet category type of &b%{_id}%&a to &b%{_arg-3}%"
+
+
+command /recipeinfo <text>:
+	permission: *
+	trigger:
+		set {_id} to arg-1
+		send "&aID:&b %{recipeData.%{_id}%.id}%"
+		send formatted "<command:/editrecipe %{_id}% needed>&aNeeded:&b %{recipeData.%{_id}%.needed::*}%<reset>"
+		send formatted "<command:/editrecipe %{_id}% product>&aProduct:&b %{recipeData.%{_id}%.product}%<reset>"
+		send formatted "<suggest command:/editrecipe %{_id}% category>&aCategory:&b %{recipeData.%{_id}%.category}%<reset>"
+
+on inventory click:
+	if inventory name of event-inventory contains "Crafting:":
+		cancel event
+
+function openEditNeededRecipe(p: player, id: text):
+	open chest with 1 row named "%{_id}%|Items needed:" to {_p}
+	set {_i} to 0
+	loop {recipeData.%{_id}%.needed::*}:
+		set slot {_i} of {_p}'s current inventory to loop-value
+		add 1 to {_i}
+
+function openEditProductRecipe(p: player, id: text):
+	open chest with 1 row named "%{_id}%|1 Product:" to {_p}
+	set slot 0 of {_p}'s current inventory to {recipeData.%{_id}%.product}
+
+on inventory close:
+	set {_invName} to inventory name of event-inventory
+
+	if {_invName} contains "Items needed:":
+		set {_items::*} to items in event-inventory
+		set {_n::*} to inventory name of event-inventory split at "|"
+		set {_id} to index 0 of {_n::*}
+		set {recipeData.%{_id}%.needed::*} to {_items::*}
+		wait 5 ticks
+		openEditProductRecipe(player, {_id})
+
+	if {_invName} contains "Product:":
+		set {_n::*} to inventory name of event-inventory split at "|"
+		set {_id} to index 0 of {_n::*}
+		set {_items::*} to items in event-inventory
+		set {_item} to first element out of {_items::*}
+		set {recipeData.%{_id}%.product} to {_item}
+		make player execute "/recipeinfo %{_id}%"
+
+on inventory close:
+	if inventory name of event-inventory is "&9&lFishing Drops":
+		delete {_items::*}
+		set {_items::*} to items in event-inventory
+		delete {fishingdrops::*}
+		set {fishingdrops::*} to {_items::*}

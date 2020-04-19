@@ -1,0 +1,147 @@
+on right click:
+	player's held item is book
+	name of player's held item is "&3&lADVANCEMENTS"
+	openAdvancements(player)
+
+command /advancementbook:
+	trigger:
+		give player shiny book named "&3&lADVANCEMENTS"
+
+command /advancementlist:
+	permission: *
+	trigger:
+		set {_rows} to ceil((size of {advancements::*})/9)
+		open virtual chest inventory with {_rows} rows named "&3&lADVANCEMENTS LIST:" to player
+		set {_idx} to -1
+		set {_puuid} to uuid of player
+		
+		loop {advancements::*}:
+			set {_id} to loop-value
+			add 1 to {_idx}
+			set {_title} to "&b%{advancement.%{_id}%.title}%"
+			set {_text} to "&a%{advancement.%{_id}%.text}%"
+			format gui slot {_idx} of player with book named {_title} with lore {_text} and {_id} to run:
+				close player's inventory
+				make player execute command "/editadvancement %{_id}%"
+
+command /resetadvancements [<player>]:
+	permission: *
+	trigger:
+		set {_p} to player
+		if arg-1 is set:
+			set {_p} to arg-1
+			
+command /removeadvancement <text>:
+	permission: *
+	trigger:
+		set {_id} to arg-1
+		remove {_id} from {advancements::*}
+		clear {advancement.%{_id}%.text}
+		clear {advancement.%{_id}%.title}
+		send "&aRemoved &4%{_id}% &aFrom advancements"
+
+command /editadvancement <text>:
+	permission: *
+	trigger:
+		set {_args::*} to arguments split at " "
+		if size of {_args::*} >= 1:
+			set {_arg-1} to index 0 of {_args::*}
+		if size of {_args::*} >= 2:
+			set {_arg-2} to index 1 of {_args::*}
+		if size of {_args::*} >= 3:
+			set {_arg-3} to index 2 of {_args::*}
+
+		set {_id} to {_arg-1}
+
+		set {_value} to arguments
+		replace "%{_arg-1}% " with "" in {_value}
+		replace "%{_arg-2}% " with "" in {_value}
+
+		if {_arg-2} is not set:
+			set {_title} to {advancement.%{_id}%.title}
+			set {_text} to {advancement.%{_id}%.text}
+			send formatted "&aAdvancement &4%{_id}%&a:"
+			send formatted "&b<suggest command:/editadvancement %{_id}% text>Text:&a %{_text}% &6(CLICK TO EDIT)"
+			send formatted "&b<suggest command:/editadvancement %{_id}% title>Title:&a %{_title}% &6(CLICK TO EDIT)"
+			stop
+
+		if {_arg-2} is "text":
+			set {advancement.%{_id}%.text} to {_value}
+			send "&aSet text of &4%{_id}%&a to &b%{_value}%"
+		if {_arg-2} is "title":
+			set {advancement.%{_id}%.title} to {_value}
+			send "&aSet title of &4%{_id}%&a to &b%{_value}%"
+
+command /orderadvancements:
+	permission: *
+	trigger:
+		set {_rows} to ceil((size of {advancements::*})/9)
+		open chest inventory with {_rows} rows named "&3&lORDER ADVANCEMENTS:" to player
+		set {_idx} to -1
+		set {_puuid} to uuid of player
+		
+		loop {advancements::*}:
+			set {_id} to loop-value
+			add 1 to {_idx}
+			set {_title} to "&b%{advancement.%{_id}%.title}%"
+			set {_text} to "&a%{advancement.%{_id}%.text}%"
+			set slot {_idx} of player's current inventory to book named {_id} with lore {_text}
+
+
+on inventory close:
+	if inventory name of event-inventory is "&3&lORDER ADVANCEMENTS:":
+		set {_puuid} to uuid of player
+		clear {_items::*}
+		set {_items::*} to items in event-inventory
+		loop {_items::*}:
+			set {_id} to name of loop-value
+			add {_id} to {_ids::*}
+		set {advancements::*} to {_ids::*}
+
+command /addadvancement <text>:
+	permission: *
+	trigger:
+		set {_id} to arg-1
+		if {advancements::*} contains {_id}:
+			send formatted "&aAdvancements already contains &4%{_id}%.&a%nl%Click <command:/removeadvancement %{_id}%>&bHere<reset> &ato remove it!"
+			stop
+		add {_id} to {advancements::*}
+		set {advancement.%{_id}%.text} to "-"
+		set {advancement.%{_id}%.title} to "-"
+		send formatted "&bAdded advancement &4%{_id}%&b:"
+		send formatted "&b<suggest command:/editadvancement %{_id}% text>Click to change the text."
+		send formatted "&b<suggest command:/editadvancement %{_id}% title>Click to Change the title."
+
+command /advancementinfo <text>:
+	trigger:
+		set {_id} to arg-1
+		set {_title} to {advancement.%{_id}%.title}
+		set {_text} to {advancement.%{_id}%.text}
+		send "&aAdvancement &4%{_id}%&a:"
+		send "&bText:&a %{_text}%"
+		send "&bTitle:&a %{_title}%"
+
+function achieveAdvancement(p: player, adv: text):
+	set {_uuid} to uuid of {_p}
+	if {players::%{_uuid}%::advancements::%{_adv}%} is true:
+		stop
+	set {players::%{_uuid}%::advancements::%{_adv}%} to true
+	set {_title} to {advancement.%{_adv}%.title} 
+	send "&bYou achieved the &e%{_title}% &badvancement!" to {_p}
+
+
+function openAdvancements(p: player):
+	set {_rows} to ceil((size of {advancements::*})/9)
+	open virtual chest inventory with size {_rows} named "&3&lADVANCEMENTS:" to {_p}
+	set {_idx} to -1
+	set {_puuid} to uuid of {_p}
+	
+	loop {advancements::*}:
+		set {_id} to loop-value
+		add 1 to {_idx}
+		set {_title} to "&b%{advancement.%{_id}%.title}%"
+		set {_text} to "&a%{advancement.%{_id}%.text}%"
+		set {_item} to book
+		if {players::%{_puuid}%::advancements::%loop-value%} is true:
+			set {_item} to shiny book
+		format gui slot {_idx} of {_p} with {_item} named {_title} with lore {_text}

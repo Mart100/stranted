@@ -1,0 +1,86 @@
+command /permitems:
+	trigger:
+		openPermItems(player)
+
+command /permitemssee <player>:
+	permission: *
+	trigger:
+		set {_p} to player
+		open chest with 1 row named "&cPermanent Items See |%arg-1%" to {_p}
+		set {_puuid} to uuid of arg-1
+		if {players::%{_puuid}%::permitemsunlocked} is not set:
+			set {players::%{_puuid}%::permitemsunlocked} to 0
+		set {_slotsunlocked} to {players::%{_puuid}%::permitemsunlocked}
+		set {_newPrice} to {_slotsunlocked}*100
+		loop 10 times:
+			set {_idx} to loop-value
+			set {_idx} to {_idx} parsed as number
+			set {_item} to {items2::%arg-1%::%{_idx}%}
+			remove 1 from {_idx}
+			if {_idx} >= {_slotsunlocked}:
+				set slot {_idx} of {_p}'s current inventory to barrier named "&6Buy new Perm slot for &e%{_newPrice}%"
+
+			else:
+				if {_item} is barrier:
+					set {_item} to air
+				set slot {_idx} of {_p}'s current inventory to {_item}
+
+function openPermItems(p: player):
+	open chest with 1 row named "&cPermanent Items" to {_p}
+	if inventory name of {_p}'s inventory is "&cPermanent Items":
+		set {_puuid} to uuid of {_p}
+		if {players::%{_puuid}%::permitemsunlocked} is not set:
+			set {players::%{_puuid}%::permitemsunlocked} to 0
+		set {_slotsunlocked} to {players::%{_puuid}%::permitemsunlocked}
+		set {_newPrice} to {_slotsunlocked}*100
+		loop 10 times:
+			set {_idx} to loop-value
+			set {_idx} to {_idx} parsed as number
+			set {_item} to {items2::%{_p}%::%{_idx}%}
+			remove 1 from {_idx}
+			if {_idx} >= {_slotsunlocked}:
+				set slot {_idx} of {_p}'s current inventory to barrier named "&6Buy new Perm slot for &e%{_newPrice}%"
+
+			else:
+				if {_item} is barrier:
+					set {_item} to air
+				set slot {_idx} of {_p}'s current inventory to {_item}
+
+on inventory click:
+	if inventory name of player's inventory is "&cPermanent Items":
+		if event-slot is barrier:
+			set {_puuid} to uuid of player
+
+			cancel event
+			set {_slotsunlocked} to {players::%{_puuid}%::permitemsunlocked}
+			set {_newPrice} to {_slotsunlocked}*100
+
+			if {tokens::%player%} >= {_newPrice}:
+				add 1 to {players::%{_puuid}%::permitemsunlocked}
+				remove {_newPrice} from {tokens::%player%}
+				close player's inventory
+				send "&aYou bought a new Permanent Item slot!"
+			else:
+				close player's inventory
+				send "&cYou do not have enough tokens for this!"
+		if event-slot is minecart with chest:
+			cancel event
+		if event-slot is dark oak boat:
+			cancel event
+
+on inventory close:
+	set {_invName} to inventory name of player's inventory
+	if {_invName} is "&cPermanent Items":
+		clear {items2::%player%::*}
+		loop all items in player's current inventory:
+			add loop-value to {items2::%player%::*}
+		send "&6&lSTRANTED &8» &7Saved your permanent items!" to player
+
+	if {_invName} contains "&cPermanent Items See":
+		set {_invnamesplit::*} to {_invName} split at "|"
+		set {_playerTxt} to index 1 of {_invnamesplit::*}
+		set {_p} to {_playerTxt} parsed as player
+		clear {items2::%{_p}%::*}
+		loop all items in player's current inventory:
+			add loop-value to {items2::%{_p}%::*}
+		

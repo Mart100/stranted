@@ -1,0 +1,285 @@
+on break of jungle wood bark block:
+	if player's held item is a wooden axe or stone axe:
+		set event-block to bedrock
+		give player 5 of stick
+		wait 5 seconds
+		set event-block to jungle wood bark block
+		stop
+	if player's held item is a iron axe:
+		set event-block to bedrock
+		give player oak planks
+		wait 5 seconds
+		set event-block to jungle wood bark block
+	if player's held item is a diamond axe:
+		set event-block to bedrock
+		give player 2 of oak planks
+		wait 5 seconds
+		set event-block to jungle wood bark block
+	
+	else:
+		if player's gamemode is creative:
+			stop
+		cancel event
+
+on break of clay block:
+	if player's held item is wooden shovel:
+		achieveAdvancement(player, "mine_clay")
+		set event-block to bedrock
+		give player 2 of clay
+		wait 5 seconds
+		set event-block to clay block
+	else if player's held item is stone shovel:
+		achieveAdvancement(player, "mine_clay")
+		set event-block to bedrock
+		give player 2 of clay
+		wait 5 seconds
+		set event-block to clay block
+	else if player's held item is iron shovel:
+		achieveAdvancement(player, "mine_clay")
+		set event-block to bedrock
+		give player 5 of clay
+		wait 5 seconds
+		set event-block to clay block
+	else if player's held item is diamond shovel:
+		achieveAdvancement(player, "mine_clay")
+		set event-block to bedrock
+		give player 10 of clay
+		wait 5 seconds
+		set event-block to clay block
+	else:
+		if player's gamemode is creative:
+			stop
+		cancel event
+
+
+on item damage:
+	cancel event
+
+
+variables:
+    {socialspy::%player%} = false
+ 
+on command:
+    if executor is player:
+        loop all players:
+            if loop-player has permission "socialspy.use":
+                if {socialspy::%loop-player%} is true:
+                    send "&7[&eCMD&7] %player%&8: &e/%command% &e%arguments%" to loop-player
+ 
+command /socialspy [<text>]:
+    permission: socialspy.use
+    permission message: &cno perm.
+    aliases: commandspy, spy, cmdspy
+    trigger:
+        if {socialspy::%player%} is false:
+            set {socialspy::%player%} to true
+            send "&7Social spy &a&lENABLED&r&7!" to player
+            stop
+        if {socialspy::%player%} is true:
+            set {socialspy::%player%} to false
+            send "&7Social spy &c&lDISABLED&r&7!" to player
+            stop
+
+command /staffchat [<text>]:
+	aliases: /sc, /a
+	permission: sc.staffchat
+	permission message: &cNo permission!
+	trigger:
+		loop all players:
+			if loop-player has permission "sc.staffchat":
+				send "&6&lSTAFFCHAT &8» &3%player%&7: &c%arg 1%" to loop-player
+
+
+
+command broadcast [<text>]:
+	aliases: bc, broadc
+	permission: *
+	trigger:
+		if arg 1 is not set:
+			send "&c&lERROR &8» &7Usage /broadcast test" to player
+			stop
+		if arg 1 is set:
+			broadcast "&6&lSTRANTED &8» &f%colored arg-1%"
+			# loop all players:
+				# play sound "block.anvil.land" to loop-player
+
+on command:
+	if command contains ":":
+		cancel event
+		send "&cNah.."
+
+
+on chat:
+	loop all players:
+		if message contains "%loop-player%":
+			if loop-player is "%event-player%":
+				stop
+			else:
+				if {antiping::%loop-player%} is true:
+					stop
+				send subtitle "&6%player% &7has mentioned you in the chat." to loop-player
+				play sound "entity.experience_orb.pickup" with volume 10 and pitch 1 at location of loop-player for loop-player
+ 
+command /disableping:
+	aliases: disablepings
+	trigger:
+		set {antiping::%player%} to true
+		send "&6&lSTRANTED &8» &7You disabled the pings!"
+
+ 
+command /enableping:
+	aliases: enablepings
+	trigger:
+		set {antiping::%player%} to false
+		send "&6&lSTRANTED &8» &7You enabled the pings!"
+
+
+on join:
+	while player is online:
+		set {_escapes} to {players::%uuid of player%::escapes}
+		set {_nametag} to {nametag::%player%}
+		set {_rank} to {ranks::%player%}
+		set {_name} to player
+		set {_full} to "&7%{_name}%"
+		if {_rank} is not "":
+			set {_full} to "%{_rank}% %{_full}%"
+		if {_nametag} is not " ":
+			set {_full} to "%{_nametag}% %{_full}%"
+		set {_full} to "&8[&6%{_escapes}%&8] %{_full}%"
+		set player's tablist name to {_full}
+		set {online} to number of all players
+		set tablist header of player to "%nl%&6&lSTRANTED%nl%&7&oEscape the island..%nl%&8"
+		set tablist footer of player to "%nl%&e%{Online}% &7&oPlayer(s)%nl%&8"
+		wait 5 second
+
+       
+on death:
+	if attacker is a player:
+		if victim is player:
+			broadcast "&6&lDEATH &8» &3%attacker% &7killed &3%victim%&7!"
+	
+			
+command /teamfix [<player>]:
+	permission: *
+	trigger:
+		if arg 1 is not set:
+			loop all players:
+				if {ranks::%loop-player%} = "&7[D]":
+					execute console command "team join 9default %loop-player%"
+					set {teamjoined::%loop-player%} to true
+		else:
+			execute console command "team join 9default %arg-1%"
+			set {teamjoined::%arg-1%} to true
+			
+
+
+on chat:
+	if message contains "claimdiscordquest o3l2y9" or "o3l2y9":
+		cancel event
+
+on first join:	
+	wait 1 second
+	execute console command "sudo dijkslag c:Welcome %player%!"
+
+
+on join:
+	if {teamjoined::%player%} is not set:
+		execute console command "team join 9default %player%"
+		set {teamjoined::%player%} to true
+		
+
+
+every 3 minutes:
+	execute console command "broadcast Don't forget to join our discord! &c/discord!"
+
+every 15 minutes:
+	if {_location} is set:
+		stop
+	else:
+		set {_pos1} to location at -93, 47, -200 in world "island"
+		set {_pos2} to location at -159, 51, -121 in world "island"
+		set {_x} to a random integer between x coord of {_pos1} and x coord of {_pos2}
+		set {_z} to a random integer between z coord of {_pos1} and z coord of {_pos2}
+		set {_location} to location({_x}, 60, {_z}, world("island"))
+		execute console command "broadcast The helicopter dropped a lootdrop!"
+		set block at {_location} to barrel
+		wait 1 second
+		loop 40 times:
+			if block under {_location} is air:
+				set block at {_location} to air
+				remove 1 from the y coord of {_location}
+				set block at {_location} to barrel
+
+				wait 1 second
+			else:
+				if block at {_location} is air:
+					stop
+				# broadcast " "
+				execute console command "broadcast A lootdrop landed!"
+				# broadcast " "
+				stop loop
+
+		
+	
+	
+	
+on click on barrel:
+	if block under event-block is air:
+		cancel event
+		send "&6&lSTRANTED &8» &7You can't loot a falling lootdrop!" to player
+	else:
+		# broadcast " "
+		execute console command "broadcast &3%player% &flooted the lootdrop!"
+		# broadcast " "
+		set block at event-location to air
+		delete {_location}
+		chance of 5%:
+			give player 1 diamond sword
+			add 20 to {tokens::%player%}
+			send "&6&lLOOTDROP &8» &7You got &61 Diamond sword &7and &620 tokens&7!" to player
+			if {lootdropquest::%player%} is true:
+				stop
+			else:
+				set {lootdropquest::%player%} to true
+				checkQuests(player)
+			stop
+		else:
+			add 20 to {tokens::%player%}
+			send "&6&lLOOTDROP &8» &7You got &620 tokens&7!" to player
+			if {lootdropquest::%player%} is true:
+				stop
+			else:
+				set {lootdropquest::%player%} to true
+				checkQuests(player)
+			stop
+			
+command /mutechat:
+	permission: *
+	trigger:
+		if {chatmute} is false:
+			set {chatmute} to true
+			send "&6&lSTRANTED &8» &3%player% &7muted the chat!"
+			stop
+		if {chatmute} is not set:
+			set {chatmute} to true
+			send "&6&lSTRANTED &8» &3%player% &7muted the chat!"
+			stop
+		else:
+			set {chatmute} to false
+			send "&6&lSTRANTED &8» &3%player% &7unmuted the chat!"
+			stop
+
+on chat:
+	if {chatmute} = true:
+		if player is op:
+			stop
+		if player has permission "mutechat":
+			stop
+		else:
+			cancel event
+			send "&cYou can't chat while the chat is muted!"
+
+command /egg:
+	trigger:
+		shoot an egg from player at speed 2
+		send title "&6Pew" to player

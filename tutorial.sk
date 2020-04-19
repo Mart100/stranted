@@ -1,0 +1,20 @@
+
+
+
+command /tutorial:
+	trigger:
+		if {intutorial::*} contains player:
+			send "&3You quit the tutorial! start again with /tutorial"
+			remove player from {intutorial::*}
+			wipe player's sidebar
+		else:
+			add player to {intutorial::*}
+			send "&3You entered the tutorial. You can always quit by typing /tutorial"
+
+			wipe player's sidebar
+			set name of sidebar of player to "&c&lTutorial"
+			set score "&3Jumping out:" in sidebar of player to 2
+			set score "&2Jump out the plane to start" in sidebar of player to 1
+
+function updateTutorial({_p}):
+	stop

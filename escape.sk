@@ -1,0 +1,36 @@
+options:
+	final_escape: 3
+
+function escaped(p: player):
+	set {_uuid} to uuid of {_p}
+	if {players::%{_uuid}%::lastescape} is not set:
+		set {players::%{_uuid}%::lastescape} to 10 seconds ago
+	if {players::%{_uuid}%::lastescape} was less than 5 seconds ago:
+		stop
+	set {players::%{_uuid}%::lastescape} to now
+	delete vehicle of {_p}
+	add 150 to {tokens::%{_p}%}
+	broadcast "&e%{_p}%&b Has escaped!"
+	send "&aYou escaped! So you earned &e150 tokens&a which you can use in &b/ts" to {_p}
+	clear {players::%{_uuid}%::backpack::*}
+	set {players::%{_uuid}%::furnace::1} to air
+	set {players::%{_uuid}%::furnace::2} to air
+	set {players::%{_uuid}%::furnace::3} to air
+	add 1 to {players::%{_uuid}%::escapes}
+	endspeedrun({_p})
+	ending({_p})
+	wait 5 seconds
+	calculateLeaderboard()
+
+command /setescapes <player> <number>:
+	permission: *
+	trigger:
+		set {_uuid} to uuid of arg-1
+		set {players::%{_uuid}%::escapes} to arg-2
+
+command /triggerescape <player>:
+	permission: *
+	trigger:
+		set {_p} to arg-1
+		escaped({_p})
+

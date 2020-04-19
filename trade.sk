@@ -1,0 +1,64 @@
+command /trade <player>:
+  trigger:
+    set {_p1} to player
+    set {_p2} to arg-1
+
+    send "&7This feature is currently disabled!"
+    stop
+
+    send "&7You send a trade request to &e%{_p2}% &7Wait for them to accept." to {_p1}
+    send formatted "&e%{_p1}%&7 Wants to trade with you. Click &a<command:/tradeaccept %{_p1}%>HERE<reset> &7to accept" to {_p2}
+
+    add "%{_p1}% %{_p2}%" to {tradeRequests::*}
+    wait 20 seconds
+    remove "%{_p1}% %{_p2}%" from {tradeRequests::*}
+
+command /tradeaccept <player>:
+  trigger:
+    set {_p1} to arg-1
+    set {_p2} to player
+
+    if {tradeRequests::*} does not contain "%{_p1}% %{_p2}%":
+      send "&7This trade request has been expired. Send another one!" to {_p2}
+      stop
+
+    trade({_p1}, {_p2})
+
+
+function trade(p1: player, p2: player):
+  formattradeinv({_p1}, {_p2})
+  formattradeinv({_p2}, {_p1)
+
+
+command /tradetest <player>:
+  permission: *
+  trigger:
+    formattradeinv(player, arg-1)
+
+function formattradeinv(p: player, p1: player):
+  open chest inventory with 6 rows named "&9Trade with &e%{_p1}%" to {_p}
+
+  loop 54 times:
+    set {_slot} to loop-value
+    set {_sl} to mod({_slot}, 9)
+    if {_sl} > 4:
+      format gui slot {_slot} of {_p} with air
+
+  loop 9 times: 
+    set {_slot} to loop-value
+    format gui slot {_slot}-1 of {_p} with shiny barrier named ""
+
+  loop 6 times: 
+    set {_slot} to 4+(loop-value*9)-9
+    format gui slot {_slot} of {_p} with shiny barrier named ""
+
+  format gui slot 3 of {_p} with skull of {_p}
+  format gui slot 5 of {_p} with skull of {_p1}
+
+on inventory click:
+  inventory name of event-inventory contains "&9Trade with"
+  set {_slot} to index of event-slot
+  set {_sl} to mod({_slot}, 9)
+  #broadcast "%{_sl}% %{_slot}% %event-inventoryaction% %clicked slot%"
+  #if {_sl} > 4:
+  #  cancel event

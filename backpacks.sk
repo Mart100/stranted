@@ -1,0 +1,40 @@
+on right click:
+	player's held item is minecart with chest
+	name of player's held item is "&3Backpack"
+	openBackpack(player)
+
+
+function openBackpack(p: player):
+	open chest inventory with 6 rows named "&3Backpack" to {_p}
+	set {_i} to 0
+	set {_puuid} to uuid of {_p}
+	loop {players::%{_puuid}%::backpack::*}:
+		set slot {_i} of {_p}'s current inventory to loop-value
+		add 1 to {_i}
+
+on inventory click:
+	if inventory name of event-inventory is "&3Backpack":
+		if clicked item is minecart with chest:
+			cancel event
+
+on inventory close:
+	if inventory name of event-inventory is "&3Backpack":
+		set {_puuid} to uuid of player
+		clear {_items::*}
+		set {_items::*} to items in event-inventory
+		if {_items::*} is not set:
+			clear {players::%{_puuid}%::backpack::*}
+		else:
+			set {players::%{_puuid}%::backpack::*} to {_items::*}
+
+
+command /bpsee <player>:
+	permission: *
+	trigger:
+		set {_p} to arg-1
+		open chest inventory with 6 rows named "&e%{_p}%'s &3Backpack" to player
+		set {_i} to 0
+		set {_puuid} to uuid of {_p}
+		loop {players::%{_puuid}%::backpack::*}:
+			set slot {_i} of player's current inventory to loop-value
+			add 1 to {_i}
