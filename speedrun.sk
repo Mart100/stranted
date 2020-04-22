@@ -1,0 +1,40 @@
+command /speedrunmode [<text>]:
+    trigger:
+        if arg-1 is "forreal":
+            # start(player)
+            set {speedrunmode::%uuid of player%} to true
+        else:
+            send "&6&lSTRANTED &r&8>> &r&7Are you sure you want to start a speedrun session? &6&lALL YOUR CURRENT PROGRESS WILL BE RESET &r&7(except tokens) <command:/speedrunmode forreal>&3[CLICK HERE]<reset>" to player
+           
+command /escapetimes:
+    trigger:
+        set {_uuid} to uuid of player   
+        loop {escapetimes::%{_uuid}%::*}:
+            send "%loop-value%" to player
+
+on quit:
+    set {_now} to now
+    set {_uuid} to uuid of player
+    add difference between {starttimesession::%{_uuid}%} and {_now} to {sessiontimes::%{_uuid}%::*} 
+
+on join:
+    set {_now} to now
+    set {_uuid} to uuid of player
+    set {starttimesession::%{_uuid}%} to {_now}
+
+
+function endspeedrun(ply: player):
+    set {_now} to now
+    set {_uuid} to uuid of {_ply}
+    set {_startsession} to {starttimesession::%{_uuid}%}
+    set {_timediff} to difference between {_startsession} and {_now}
+    add {_timediff} to {sessiontimes::%{_uuid}%::*}
+    loop {sessiontimes::%{_uuid}%::*}:
+        add loop-value to {_totaltime}
+    
+    if {escapetimes::%{_uuid}%::*} is not set:
+        {escapetimes::%{_uuid}%::*}
+    add {_totaltime} to {escapetimes::%{_uuid}%::*}
+    send "&bIt took you &e%{_totaltime}% &bto escape!" to {_ply}
+
+
