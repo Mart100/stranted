@@ -1,0 +1,211 @@
+command /testend:
+    permission: *
+    trigger:
+        ending(player)
+
+function ending(ply: player):
+    set {_uuid} to uuid of {_ply}
+    if {players::%{_uuid}%::escapes} is more than 3:
+        start({_ply})
+    else:
+        set {_pos} to location at -264.5, 5, 76.5 in world "island"
+        teleport {_ply} to {_pos}
+        set {_uuid} to uuid of {_ply}
+        set {players::%{_uuid}%::indialogue} to false
+        set {players::%{_uuid}%::incutscene} to true
+
+on walking on white concrete:
+    set {_uuid} to uuid of player
+    if {players::%{_uuid}%::incutscene} is false:
+        stop
+    else:
+        set {_pos} to location at -273, 14, 73
+        set {_distance} to distance between player and {_pos}
+        if {_distance} < 1:
+            if {players::%{_uuid}%::indialogue} is true:
+                stop
+            else:
+                set {players::%{_uuid}%::indialogue} to true
+            
+            if {players::%{_uuid}%::escapes} is 1:
+                firstcutscene(player)
+            else if {players::%{_uuid}%::escapes} is 2:
+                secondcutscene(player)
+            else if {players::%{_uuid}%::escapes} is 3:
+                thirdcutscene(player)
+            # if {player::%uuid of player%::escapes} is 1:
+                
+on right click on stone button:
+    set {_pos} to location of event-block
+    set {_actualpos} to location at -257.5, 6.5, -27.5
+    if {_pos} is {_actualpos}:
+        start(player)
+
+on damage:
+    set {_uuid} to uuid of victim 
+    if {players::%{_uuid}%::incutscene} is true:
+        if event-damagecause is drowning:
+            cancel event
+
+function thirdcutscene(ply: player):
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 10" to {_ply}
+    wait 10 ticks
+    send "&cSTCA3 &8>> &fWait wait wait" to {_ply}
+    wait 30 ticks
+    send "&eSTCA2 &8>> &fWhat the...." to {_ply}
+    wait 50 ticks
+    send "&aSTCA1 &8>> &ffuck fuck FUCK" to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 9" to {_ply}
+    wait 40 ticks
+    send "&eSTCA2 &8>> &fWhat did you??" to {_ply}
+    wait 60 ticks
+    send "&cSTCA3 &8>> &fYou failed us all..." to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 8" to {_ply}
+    wait 60 ticks
+    send "&aSTCA1 &8>> &fShut up, let me fix this" to {_ply}
+    wait 50 ticks
+    send "&eSTCA2 &8>> &fI'm so confused" to {_ply}
+    wait 40 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 7" to {_ply}
+    wait 40 ticks
+    send "&cSTCA3 &8>> &fDid someone escape again??" to {_ply}
+    wait 50 ticks
+    send "&eSTCA2 &8>> &fSeems like it.." to {_ply}
+    wait 15 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 6" to {_ply}
+    wait 60 ticks
+    send "&aSTCA1 &8>> &fIt seems like they hacked the systems.." to {_ply}
+    wait 40 ticks
+    send "&cSTCA3 &8>> &fOh really?" to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 5" to {_ply}
+    wait 50 ticks
+    send "&eSTCA2 &8>> &fWhat did he make this time?" to {_ply}
+    wait 60 ticks
+    send "&aSTCA1 &8>> &fA computer I think.." to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 4" to {_ply}
+    wait 50 ticks
+    send "&eSTCA2 &8>> &fI hope third times isn't actually a charm.." to {_ply}
+    wait 70 ticks
+    send "&cSTCA3 &8>> &fCan you hack him back?" to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 3" to {_ply}
+    wait 40 ticks
+    send "&aSTCA1 &8>> &fI'm working on it..." to {_ply}
+    wait 40 ticks
+    send "&eSTCA2 &8>> &fHurry up, I don't wanna die" to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 2" to {_ply}
+    wait 70 ticks
+    send "&cSTCA3 &8>> &fPlease...." to {_ply}
+    wait 70 ticks
+    send "&aSTCA1 &8>> &fI can't get in..." to {_ply}
+    wait 10 ticks
+    send "&7[SYSTEM] &8>> &fAll services shutting down in 1" to {_ply}
+    wait 70 ticks
+    send "&cSTCA3 &8>> &fWho's idea was this again?" to {_ply}
+    wait 60 ticks
+    send "&aSTCA1 &8>> &fWhat is this??" to {_ply}
+    wait 50 ticks
+    send "&dSTCA4 &8>> &fKarma." to {_ply}
+    wait 5 ticks
+    send "&7[SYSTEM] &8>> &fAll services shut down." to {_ply}
+    set {_pos2} to location at -257.5, 5.5, -25.5 in world "island"
+    teleport {_ply} to {_pos2}
+    apply blindness to {_ply} for 4 second
+    set {_uuid} to uuid of {_ply}
+    set {players::%{_uuid}%::incutscene} to false
+
+
+function secondcutscene(ply: player):
+    send "&cSTCA3 &8>> &fDid you see that??" to {_ply}
+    wait 10 ticks
+    send "&eSTCA2 &8>> &fWhat?" to {_ply}
+    wait 20 ticks
+    send "&cSTCA3 &8>> &fThey escaped again...." to {_ply}
+    wait 30 ticks
+    send "&aSTCA1 &8>> &fWait what happened?" to {_ply}
+    wait 40 ticks
+    send "&cSTCA3 &8>> &fI don't know, they was going to another island, then went into the mountain and disappeared.." to {_ply}
+    wait 80 ticks
+    send "&aSTCA1 &8>> &fWhat's in the mountain?" to {_ply}
+    wait 50 ticks
+    send "&eSTCA2 &8>> &fuhhh... nothing..." to {_ply}
+    wait 30 ticks
+    send "&aSTCA1 &8>> &f..." to {_ply}
+    wait 20 ticks
+    send "&aSTCA1 &8>> &fWhat did you put in the mountain" to {_ply}
+    wait 60 ticks
+    send "&eSTCA2 &8>> &fI put an escape room for testing... b... but... I locked it with a key! So it should be safe!" to {_ply}
+    wait 90 ticks
+    send "&cSTCA3 &8>> &f""Should be""" to {_ply}
+    wait 20 ticks
+    send "&eSTCA2 &8>> &fThey must have crafted a key or something, but no way they knows the secret encryption from the key!!" to {_ply}
+    wait 90 ticks
+    send "&aSTCA1 &8>> &fWhat's the encryption?" to {_ply}
+    wait 40 ticks
+    send "&eSTCA2 &8>> &fuhh... something like 1234 I think" to {_ply}
+    wait 60 ticks
+    send "&cSTCA3 &8>> &fOH... I wonder how he guessed the encryption??? idiot..." to {_ply}
+    wait 80 ticks
+    send "&aSTCA1 &8>> &fChange the encryption to something decently strong this time.... I will send them back.." to {_ply}
+    apply nausea to {_ply} for 18 seconds
+    wait 100 ticks
+    send "&cSTCA3 &8>> &fGuys, I'm really proud of the progress so far with this program!! We're doing great! Nobody has escaped yet!" to {_ply}
+    wait 100 ticks
+    send "&eSTCA2 &8>> &fStop being so sarcastic, and focus." to {_ply}
+    wait 40 ticks
+    send "&eSTCA2 &8>> &f2nd time isn't a charm yet" to {_ply}
+    wait 40 ticks
+    set {_pos2} to location at -264.5, 5, 76.5 in world "island"
+    teleport {_ply} to {_pos2}
+    apply blindness to {_ply} for 4 second
+    wait 20 ticks
+    set {_uuid} to uuid of {_ply}
+    set {players::%{_uuid}%::incutscene} to false
+    start({_ply})
+
+function firstcutscene(ply: player):
+    send "&eSTCA2 &8>> &fWhat happend!?" to {_ply}
+    wait 40 ticks
+    send "&cSTCA3 &8>> &fYou had ONE job!" to {_ply}
+    wait 40 ticks
+    send "&aSTCA1 &8>> &fCalm down, not like you are helping the situation" to {_ply}
+    wait 80 ticks
+    send "&eSTCA2 &8>> &fHow could they escape?!?" to {_ply}
+    wait 40 ticks
+    send "&aSTCA1 &8>> &fThat's what I'm figuring out..." to {_ply}
+    wait 40 ticks
+    send "&cSTCA3 &8>> &fUgh, this is never gonna work, why did we invest all our time in this?" to {_ply}
+    wait 100 ticks
+    send "&eSTCA2 &8>> &fBe quiet! We got to focus now" to {_ply}
+    wait 60 ticks
+    send "&cSTCA3 &8>> &fSays you, not like y..." to {_ply}
+    send "&aSTCA1 &8>> &fThey crafted a boat" to {_ply}
+    wait 20 ticks
+    send "&eSTCA2 &8>> &fWhat?" to {_ply}
+    send "&cSTCA3 &8>> &fWhat?" to {_ply}
+    wait 60 ticks
+    send "&aSTCA1 &8>> &fThey made a boat, and used that to escape the island" to {_ply}
+    wait 60 ticks
+    send "&cSTCA3 &8>> &fThat's impossible!" to {_ply}
+    wait 30 ticks
+    send "&eSTCA2 &8>> &fI'll get on fixing it right away!" to {_ply}
+    wait 60 ticks
+    apply nausea to {_ply} for 12 seconds
+    send "&aSTCA1 &8>> &fThank you, I wonder where he is now, I'll send them back either way" to {_ply}
+    wait 80 ticks
+    send "&cSTCA3 &8>> &fAre the rest of the subjects okay?" to {_ply}
+    wait 40 ticks
+    send "&aSTCA1 &8>> &fThey should be.." to {_ply}
+    wait 40 ticks
+    set {_pos2} to location at -264.5, 5, 76.5 in world "island"
+    teleport {_ply} to {_pos2}
+    apply blindness to {_ply} for 4 second
+    wait 20 ticks
+    set {_uuid} to uuid of {_ply}
+    set {players::%{_uuid}%::incutscene} to false
+    start({_ply})

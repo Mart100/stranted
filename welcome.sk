@@ -1,0 +1,34 @@
+command /resetprogress:
+    trigger:
+        send "&6&lSTRANTED &r&8>> &r&7Are you sure you want to reset all your progress! (this cannot be undone) <command:/resetprogressactual>&3[CLICK HERE]<reset>" to player
+
+
+command /resetprogressactual:
+    trigger:
+        start(player)
+
+
+command /setstartspawnpoint:
+    permission: *
+    trigger:
+        set {startspawnpoint} to player's location
+        send "Successfully set new starting spawn point." to player
+
+command /setlorebook:
+    permission: *
+    trigger:
+        set {lorebook} to player's held item
+        send "Successfully set new lore book." to player
+
+function start(ply: player):
+    send "&c&lWelcome to Stranted! Jump out the plane to get started!" to {_ply}
+    teleport {_ply} to {startspawnpoint}
+    wait 10 ticks
+    clear {_ply}'s inventory
+    set {_now} to now
+    set {_uuid} to uuid of {_ply}
+    set {starttimesession::%{_uuid}%} to {_now}
+    clear {sessiontimes::%{_uuid}%::*}
+    give shiny book named "&3&lADVANCEMENTS" to {_ply}
+    give {lorebook} to {_ply}
+    
